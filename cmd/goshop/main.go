@@ -24,6 +24,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	err = postgresql.Migrate(db)
+	if err != nil {
+		log.Fatal(err)
+	}
 	fmt.Println(db)
 	// new app with htmx instance
 	app := &App{

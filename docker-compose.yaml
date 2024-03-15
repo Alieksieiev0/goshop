@@ -9,6 +9,8 @@ services:
     image: postgres
     volumes:
       - goshop-data:/var/lib/postgresql
+    ports:
+      - "5432:5432"
     environment:
       - POSTGRES_HOST=${DB_HOST}
       - POSTGRES_USER=${DB_USER}

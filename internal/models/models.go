@@ -21,5 +21,6 @@ type Category struct {
 	Name        string
 	Description sql.NullString
 	ParentId    *uint
+	Parent      *Category
 	Products    []Product `gorm:"many2many:product_categories;"`
 }

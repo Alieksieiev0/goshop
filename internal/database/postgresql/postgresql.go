@@ -26,5 +26,9 @@ func Migrate(db *gorm.DB) error {
 		return err
 	}
 
-	return db.Migrator().CreateConstraint(&models.Category{}, "Category")
+	if err := db.Migrator().CreateConstraint(&models.Category{}, "Category"); err != nil {
+		return err
+	}
+
+	return db.Migrator().CreateConstraint(&models.Category{}, "fk_categories_parent_categores")
 }
