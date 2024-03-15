@@ -1,23 +1,30 @@
 package rest
 
-import "github.com/gin-gonic/gin"
+import (
+	"log"
+	"os"
+
+	"github.com/Alieksieiev0/goshop/internal/services"
+	"github.com/gin-gonic/gin"
+)
 
 type Server struct {
-	r *gin.Engine
+	r  *gin.Engine
+	ps services.ProductService
 }
 
-func NewServer(r *gin.Engine) *Server {
+func NewServer(r *gin.Engine, ps services.ProductService) *Server {
 	return &Server{
-		r: r,
+		r:  r,
+		ps: ps,
 	}
 }
 
 func (s *Server) Start(addr ...string) error {
-	s.r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
-
+	logger := log.New(os.Stdout, "[APP-debug] [INFO] ", log.Lshortfile)
+	s.r.Use(Logger(logger))
+	s.r.GET("/products", s.handleGetAllProducts)
+	s.r.POST("/products", s.handleCreateProduct)
+	s.r.DELETE("/products", s.handleDeleteAllProducts)
 	return s.r.Run(addr...)
 }

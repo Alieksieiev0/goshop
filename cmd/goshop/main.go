@@ -5,9 +5,11 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/Alieksieiev0/goshop/internal/database/postgresql"
+	"github.com/Alieksieiev0/goshop/internal/database"
+	"github.com/Alieksieiev0/goshop/internal/services"
+	"github.com/Alieksieiev0/goshop/internal/transport/rest"
 	"github.com/donseba/go-htmx"
-	"github.com/donseba/go-htmx/middleware"
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
 
@@ -20,29 +22,21 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	db, err := postgresql.Connect()
+	db, err := database.Connect()
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = postgresql.Migrate(db)
+	err = database.Migrate(db)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println(db)
-	// new app with htmx instance
-	app := &App{
-		htmx: htmx.New(),
+
+	s := rest.NewServer(gin.New(), services.NewProductDBService(db))
+	err = s.Start(":3000")
+	if err != nil {
+		log.Fatal(err)
 	}
-
-	mux := http.NewServeMux()
-	// wrap the htmx example middleware around the http handler
-
-	mux.Handle("/", http.FileServer(http.Dir("")))
-	mux.Handle("/test", middleware.MiddleWare(http.HandlerFunc(app.Home)))
-
-	err = http.ListenAndServe(":3000", mux)
-	log.Fatal(err)
-
 }
 
 func (a *App) Home(w http.ResponseWriter, r *http.Request) {
