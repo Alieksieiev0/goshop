@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/Alieksieiev0/goshop/internal/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -18,4 +19,12 @@ func Connect() (*gorm.DB, error) {
 		os.Getenv("DB_PORT"),
 	)
 	return gorm.Open(postgres.Open(dsn), &gorm.Config{})
+}
+
+func Migrate(db *gorm.DB) error {
+	if err := db.AutoMigrate(&models.Product{}); err != nil {
+		return err
+	}
+
+	return db.Migrator().CreateConstraint(&models.Category{}, "Category")
 }

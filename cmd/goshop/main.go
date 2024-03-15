@@ -5,8 +5,10 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/Alieksieiev0/goshop/internal/database/postgresql"
 	"github.com/donseba/go-htmx"
 	"github.com/donseba/go-htmx/middleware"
+	"github.com/joho/godotenv"
 )
 
 type App struct {
@@ -14,6 +16,15 @@ type App struct {
 }
 
 func main() {
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatal(err)
+	}
+	db, err := postgresql.Connect()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(db)
 	// new app with htmx instance
 	app := &App{
 		htmx: htmx.New(),
@@ -25,8 +36,9 @@ func main() {
 	mux.Handle("/", http.FileServer(http.Dir("")))
 	mux.Handle("/test", middleware.MiddleWare(http.HandlerFunc(app.Home)))
 
-	err := http.ListenAndServe(":3000", mux)
+	err = http.ListenAndServe(":3000", mux)
 	log.Fatal(err)
+
 }
 
 func (a *App) Home(w http.ResponseWriter, r *http.Request) {
