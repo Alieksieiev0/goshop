@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/Alieksieiev0/goshop/internal/services"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,6 +24,7 @@ func NewServer(r *gin.Engine, ps services.ProductService) *Server {
 func (s *Server) Start(addr ...string) error {
 	logger := log.New(os.Stdout, "[APP-debug] [INFO] ", log.Lshortfile)
 	s.r.Use(Logger(logger))
+	s.r.Use(cors.Default())
 	s.r.GET("/products", s.handleGetAllProducts)
 	s.r.POST("/products", s.handleCreateProduct)
 	s.r.DELETE("/products", s.handleDeleteAllProducts)

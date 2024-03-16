@@ -26,16 +26,8 @@ func NewProductDBService(db *gorm.DB) ProductService {
 
 func (pdbs *ProductDBService) GetAllProducts(c *gin.Context) ([]models.Product, error) {
 	products := []models.Product{}
-	result := pdbs.db.Find(&products)
-	if result.Error != nil {
-		return nil, fmt.Errorf(
-			"received error: %v, while executing statement: %v",
-			result.Error,
-			result.Statement,
-		)
-	}
-
-	return products, nil
+	err := pdbs.db.Model(&models.Product{}).Preload("Categories").Find(&products).Error
+	return products, err
 }
 
 func (pdbs *ProductDBService) CreateProduct(c *gin.Context, product *models.Product) error {
@@ -43,26 +35,9 @@ func (pdbs *ProductDBService) CreateProduct(c *gin.Context, product *models.Prod
 		return fmt.Errorf("cannot create product without categories")
 	}
 
-	result := pdbs.db.Create(product)
-	if result.Error != nil {
-		return fmt.Errorf(
-			"received error: %v, while executing statement: %v",
-			result.Error,
-			result.Statement,
-		)
-	}
-	return nil
+	return pdbs.db.Create(product).Error
 }
 
 func (pdbs *ProductDBService) DeleteAllProducts(c *gin.Context) error {
-	result := pdbs.db.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Product{})
-	if result.Error != nil {
-		return fmt.Errorf(
-			"received error: %v, while executing statement: %v",
-			result.Error,
-			result.Statement,
-		)
-	}
-
-	return nil
+	return pdbs.db.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Product{}).Error
 }

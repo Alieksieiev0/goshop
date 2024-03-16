@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/Alieksieiev0/goshop/internal/models"
@@ -15,6 +16,7 @@ func (s *Server) handleGetAllProducts(c *gin.Context) {
 		return
 	}
 
+	fmt.Println(products)
 	c.JSON(http.StatusOK, gin.H{"products": products})
 }
 
@@ -24,6 +26,7 @@ func (s *Server) handleCreateProduct(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	fmt.Println(product.Categories)
 
 	if err := s.ps.CreateProduct(c, product); err != nil {
 		err := c.Error(err)

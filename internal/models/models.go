@@ -9,10 +9,10 @@ import (
 )
 
 type Base struct {
-	ID        string `gorm:"type:uuid"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"`
+	ID        string         `gorm:"type:uuid" json:"id"`
+	CreatedAt time.Time      `                 json:"created_at"`
+	UpdatedAt time.Time      `                 json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index"     json:"deleted_at"`
 }
 
 func (b *Base) BeforeCreate(tx *gorm.DB) (err error) {
@@ -22,18 +22,18 @@ func (b *Base) BeforeCreate(tx *gorm.DB) (err error) {
 
 type Product struct {
 	Base
-	Name        string
-	Description *string
-	Code        string
-	Price       decimal.Decimal `sql:"type:decimal(12, 2)"`
-	Categories  []*Category     `gorm:"many2many:product_categories;"`
+	Name        string          `json:"name"`
+	Description *string         `json:"description"`
+	Code        string          `json:"code"`
+	Price       decimal.Decimal `json:"price"       sql:"type:decimal(12, 2)"`
+	Categories  []Category      `json:"categories"                            gorm:"many2many:product_categories;"`
 }
 
 type Category struct {
 	Base
-	Name        string
-	Description *string
-	ParentId    *uuid.UUID `gorm:"type:uuid;"`
-	Parent      *Category
-	Products    []*Product `gorm:"many2many:product_categories;"`
+	Name        string     `json:"name"`
+	Description *string    `json:"description"`
+	ParentId    *uuid.UUID `json:"parent_id"   gorm:"type:uuid;"`
+	Parent      *Category  `json:"parent"`
+	Products    []Product  `json:"products"    gorm:"many2many:product_categories;"`
 }
