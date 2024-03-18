@@ -26,7 +26,7 @@ type Product struct {
 	Description *string         `json:"description"`
 	Code        string          `json:"code"`
 	Price       decimal.Decimal `json:"price"       sql:"type:decimal(12, 2)"`
-	Categories  []Category      `json:"categories"                            gorm:"many2many:product_categories;"`
+	CategoryId  *uuid.UUID      `json:"category_id"                           gorm:"type:uuid;not null;"`
 }
 
 type Category struct {
@@ -35,5 +35,5 @@ type Category struct {
 	Description *string    `json:"description"`
 	ParentId    *uuid.UUID `json:"parent_id"   gorm:"type:uuid;"`
 	Parent      *Category  `json:"parent"`
-	Products    []Product  `json:"products"    gorm:"many2many:product_categories;"`
+	Products    []Product  `json:"products"`
 }

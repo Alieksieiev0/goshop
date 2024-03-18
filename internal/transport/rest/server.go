@@ -1,32 +1,33 @@
 package rest
 
 import (
-	"log"
-	"os"
-
 	"github.com/Alieksieiev0/goshop/internal/services"
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
 type Server struct {
-	r  *gin.Engine
-	ps services.ProductService
+	app *fiber.App
+	ps  services.ProductService
+	cs  services.CategoryService
 }
 
-func NewServer(r *gin.Engine, ps services.ProductService) *Server {
+func NewServer(app *fiber.App, ps services.ProductService, cs services.CategoryService) *Server {
 	return &Server{
-		r:  r,
-		ps: ps,
+		app: app,
+		ps:  ps,
+		cs:  cs,
 	}
 }
 
-func (s *Server) Start(addr ...string) error {
-	logger := log.New(os.Stdout, "[APP-debug] [INFO] ", log.Lshortfile)
-	s.r.Use(Logger(logger))
-	s.r.Use(cors.Default())
-	s.r.GET("/products", s.handleGetAllProducts)
-	s.r.POST("/products", s.handleCreateProduct)
-	s.r.DELETE("/products", s.handleDeleteAllProducts)
-	return s.r.Run(addr...)
+func (s *Server) Start(addr string) error {
+	s.app.Use(logger.New(logger.Config{}))
+	s.app.Use(cors.New())
+	s.app.Get("/categories/:id", getHandler(s.cs))
+	s.app.Post("/categories", createHandler(s.cs))
+	s.app.Get("/products/:id", getHandler(s.ps))
+	s.app.Get("/products", getAllHandler(s.ps))
+	s.app.Post("/products", createHandler(s.ps))
+	return s.app.Listen(addr)
 }

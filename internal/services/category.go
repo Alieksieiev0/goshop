@@ -2,24 +2,19 @@ package services
 
 import (
 	"github.com/Alieksieiev0/goshop/internal/models"
-	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 type CategoryService interface {
-	CreateCategory(c *gin.Context, category *models.Category) error
+	Service[models.Category]
 }
 
 type CategoryDBService struct {
-	db *gorm.DB
+	DatabaseService[models.Category]
 }
 
 func NewCategoryDBService(db *gorm.DB) CategoryService {
 	return &CategoryDBService{
-		db: db,
+		DatabaseService: DatabaseService[models.Category]{db},
 	}
-}
-
-func (cdbs *CategoryDBService) CreateCategory(c *gin.Context, category *models.Category) error {
-	return cdbs.db.Create(category).Error
 }

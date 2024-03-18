@@ -1,13 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/Alieksieiev0/goshop/internal/database"
 	"github.com/Alieksieiev0/goshop/internal/services"
 	"github.com/Alieksieiev0/goshop/internal/transport/rest"
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
 )
 
@@ -20,13 +19,16 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = database.Migrate(db)
+	err = database.Setup(db)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(db)
 
-	s := rest.NewServer(gin.New(), services.NewProductDBService(db))
+	s := rest.NewServer(
+		fiber.New(),
+		services.NewProductDBService(db),
+		services.NewCategoryDBService(db),
+	)
 	err = s.Start(":3000")
 	if err != nil {
 		log.Fatal(err)

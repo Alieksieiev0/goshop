@@ -21,8 +21,12 @@ func Connect() (*gorm.DB, error) {
 	return gorm.Open(postgres.Open(dsn), &gorm.Config{})
 }
 
-func Migrate(db *gorm.DB) error {
-	if err := db.AutoMigrate(&models.Product{}); err != nil {
+func Setup(db *gorm.DB) error {
+	if err := db.Exec("CREATE EXTENSION IF NOT EXISTS pg_trgm").Error; err != nil {
+		return err
+	}
+
+	if err := db.AutoMigrate(&models.Category{}, models.Product{}); err != nil {
 		return err
 	}
 
@@ -30,5 +34,5 @@ func Migrate(db *gorm.DB) error {
 		return err
 	}
 
-	return db.Migrator().CreateConstraint(&models.Category{}, "fk_categories_parent_categores")
+	return db.Migrator().CreateConstraint(&models.Category{}, "fk_categories_parent_categories")
 }
