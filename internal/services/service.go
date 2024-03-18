@@ -15,7 +15,6 @@ type Service[T any] interface {
 	Create(ctx context.Context, entity *T) error
 	Update(ctx context.Context, entity *T) error
 	Delete(ctx context.Context, id string) error
-	FuzzySearch(ctx context.Context, fm *FuzzyMatcher) ([]T, error)
 }
 
 type DatabaseService[T any] struct {
@@ -57,28 +56,4 @@ func (dbs *DatabaseService[T]) Update(ctx context.Context, entity *T) error {
 
 func (dbs *DatabaseService[T]) Delete(ctx context.Context, id string) error {
 	return dbs.db.Delete(new(T), id).Error
-}
-
-func (dbs *DatabaseService[T]) FuzzySearch(ctx context.Context, fm *FuzzyMatcher) ([]T, error) {
-	entities := []T{}
-	err := dbs.db.Order(fm.order()).Limit(fm.limit).Find(&entities).Error
-	return entities, err
-}
-
-type FuzzyMatcher struct {
-	column string
-	query  string
-	limit  int
-}
-
-func NewFuzzyMatcher(column, query string, limit int) *FuzzyMatcher {
-	return &FuzzyMatcher{
-		column: column,
-		query:  query,
-		limit:  limit,
-	}
-}
-
-func (fm *FuzzyMatcher) order() string {
-	return fmt.Sprintf("SIMILARITY(%s, %s)", fm.column, fm.query)
 }
