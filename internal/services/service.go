@@ -47,7 +47,6 @@ func (dbs *DatabaseService[T]) GetAll(ctx context.Context, params ...database.Pa
 }
 
 func (dbs *DatabaseService[T]) Create(ctx context.Context, entity *T) error {
-	fmt.Println(entity)
 	return dbs.db.Create(entity).Error
 }
 
@@ -56,5 +55,5 @@ func (dbs *DatabaseService[T]) Update(ctx context.Context, entity *T) error {
 }
 
 func (dbs *DatabaseService[T]) Delete(ctx context.Context, id string) error {
-	return dbs.db.Delete(new(T), id).Error
+	return dbs.db.Delete(new(T), "id = ?", id).Error
 }

@@ -17,7 +17,7 @@ func getHandler[T any](service services.Service[T]) fiber.Handler {
 			return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		return c.Status(fiber.StatusOK).JSON(entity)
+		return c.Status(http.StatusOK).JSON(fiber.Map{"data": entity})
 	}
 }
 
@@ -64,6 +64,18 @@ func createHandler[T any](service services.Service[T]) fiber.Handler {
 		}
 
 		return c.Status(fiber.StatusOK).JSON(entity)
+	}
+}
+
+func deleteHandler[T any](service services.Service[T]) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		err := service.Delete(c.Context(), c.Params("id"))
+		if err != nil {
+			return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"error": err.Error()})
+		}
+
+		c.Status(http.StatusOK)
+		return nil
 	}
 }
 
