@@ -31,6 +31,9 @@ func Filter(column string, value string, strict bool) Param {
 		if strict {
 			return db.Where(fmt.Sprintf("%s = ?", column), value)
 		}
-		return db.Where(fmt.Sprintf("%s LIKE ?", column), fmt.Sprintf("%%%s%%", value))
+		return db.Where(
+			fmt.Sprintf("LOWER(%s) LIKE LOWER(?)", column),
+			fmt.Sprintf("%%%s%%", value),
+		)
 	}
 }

@@ -22,9 +22,12 @@ func NewServer(app *fiber.App, ps services.ProductService, cs services.CategoryS
 }
 
 func (s *Server) Start(addr string) error {
-	s.app.Use(logger.New(logger.Config{}))
+	s.app.Use(logger.New(logger.Config{
+		Format: "${time} | ${status} | ${latency} | ${method} | ${path} | ${error}\nResponse Body: ${resBody}\n",
+	}))
 	s.app.Use(cors.New())
 	s.app.Get("/categories/:id", getHandler(s.cs))
+	s.app.Get("/categories", getAllHandler(s.ps))
 	s.app.Post("/categories", createHandler(s.cs))
 	s.app.Get("/products/:id", getHandler(s.ps))
 	s.app.Get("/products", getAllHandler(s.ps))

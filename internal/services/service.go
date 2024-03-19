@@ -47,6 +47,7 @@ func (dbs *DatabaseService[T]) GetAll(ctx context.Context, params ...database.Pa
 }
 
 func (dbs *DatabaseService[T]) Create(ctx context.Context, entity *T) error {
+	fmt.Println(entity)
 	return dbs.db.Create(entity).Error
 }
 
