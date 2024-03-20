@@ -28,6 +28,7 @@ func main() {
 		fiber.New(),
 		services.NewProductDBService(db),
 		services.NewCategoryDBService(db),
+		services.NewUserDBService(db),
 	)
 	err = s.Start(":3000")
 	if err != nil {

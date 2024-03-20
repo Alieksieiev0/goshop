@@ -26,6 +26,10 @@ func Setup(db *gorm.DB) error {
 		return err
 	}
 
+	if err := db.AutoMigrate(&models.User{}); err != nil {
+		return err
+	}
+
 	if err := db.AutoMigrate(&models.Category{}, models.Product{}); err != nil {
 		return err
 	}
