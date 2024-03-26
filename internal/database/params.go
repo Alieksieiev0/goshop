@@ -37,3 +37,10 @@ func Filter(column string, value string, strict bool) Param {
 		)
 	}
 }
+
+func ApplyParams(db *gorm.DB, params ...Param) *gorm.DB {
+	for _, param := range params {
+		db = param(db)
+	}
+	return db
+}

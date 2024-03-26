@@ -84,7 +84,7 @@ func loginHandler(service services.UserService) fiber.Handler {
 	}
 }
 
-func getHandler[T any](service services.Service[T]) fiber.Handler {
+func get[T any](service services.Service[T]) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		entity, err := service.Get(c.Context(), c.Params("id"))
 		if err != nil {
@@ -95,7 +95,7 @@ func getHandler[T any](service services.Service[T]) fiber.Handler {
 	}
 }
 
-func getAllHandler[T any](service services.Service[T]) fiber.Handler {
+func getAll[T any](service services.Service[T]) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		params := []database.Param{}
 
@@ -126,7 +126,7 @@ func getAllHandler[T any](service services.Service[T]) fiber.Handler {
 	}
 }
 
-func createHandler[T any](service services.Service[T]) fiber.Handler {
+func save[T any](service services.Service[T]) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		entity := new(T)
 		if err := c.BodyParser(entity); err != nil {
@@ -141,7 +141,7 @@ func createHandler[T any](service services.Service[T]) fiber.Handler {
 	}
 }
 
-func deleteHandler[T any](service services.Service[T]) fiber.Handler {
+func delete[T any](service services.Service[T]) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		err := service.Delete(c.Context(), c.Params("id"))
 		if err != nil {

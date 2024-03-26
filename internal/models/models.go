@@ -38,27 +38,16 @@ type Category struct {
 	Products    []Product  `json:"products"    gorm:"many2many:product_categories;"`
 }
 
-type UserRole string
-
-func (ur UserRole) String() string {
-	switch ur {
-	case Admin:
-		return "admin"
-	case Usr:
-		return "user"
-	}
-	return "unknown"
-}
-
-const (
-	Admin UserRole = "admin"
-	Usr   UserRole = "user"
-)
-
 type User struct {
 	Base
 	Username string `json:"username" gorm:"default:null;not null;unique;"`
 	Email    string `json:"email"    gorm:"default:null;not null;unique;"`
 	Password string `json:"password" gorm:"default:null;not null;"`
-	Role     UserRole
+	Roles    []Role `json:"roles"    gorm:"many2many:user_roles;"`
+}
+
+type Role struct {
+	Base
+	Name string
+	User []User `gorm:"many2many:user_roles;"`
 }

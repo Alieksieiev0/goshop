@@ -30,7 +30,7 @@ func Setup(db *gorm.DB) error {
 		return err
 	}
 
-	if err := db.AutoMigrate(&models.User{}); err != nil {
+	if err := db.AutoMigrate(&models.User{}, &models.Role{}); err != nil {
 		return err
 	}
 

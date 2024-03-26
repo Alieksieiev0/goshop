@@ -2,71 +2,83 @@ package services
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/Alieksieiev0/goshop/internal/database"
+	"github.com/Alieksieiev0/goshop/internal/models"
+	"github.com/Alieksieiev0/goshop/internal/repositories"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type Service[T any] interface {
-	Get(ctx context.Context, id string) (*T, error)
-	GetWithFilters(ctx context.Context, params ...database.Param) (*T, error)
-	GetAll(ctx context.Context, params ...database.Param) ([]T, error)
-	Create(ctx context.Context, entity *T) error
-	Update(ctx context.Context, entity *T) error
-	Delete(ctx context.Context, id string) error
+	GetById(ctx context.Context, id string) (*T, error)
+	SaveEntity(ctx context.Context, entity *T) error
+	DeleteById(ctx context.Context, id string) error
 }
 
-type DatabaseService[T any] struct {
-	db *gorm.DB
+type CrudService[T any] struct {
+	repositories repositories.Repository[T]
 }
 
-func (dbs *DatabaseService[T]) Get(ctx context.Context, id string) (*T, error) {
-	entity := new(T)
-	err := dbs.db.Preload(clause.Associations).First(entity, "id = ?", id).Error
-	return entity, err
-}
-
-func (dbs *DatabaseService[T]) GetWithFilters(
-	ctx context.Context,
-	params ...database.Param,
-) (*T, error) {
-	entity := new(T)
-	db := applyParams(dbs.db, params...)
-	if db == nil {
-		return nil, fmt.Errorf("error building query")
+func NewCrudService[T any](repositories repositories.Repository[T]) *CrudService[T] {
+	return &CrudService[T]{
+		repositories: repositories,
 	}
-	err := db.Preload(clause.Associations).First(entity).Error
-	return entity, err
 }
 
-func (dbs *DatabaseService[T]) GetAll(ctx context.Context, params ...database.Param) ([]T, error) {
-	entities := []T{}
-	db := applyParams(dbs.db)
-	if db == nil {
-		return nil, fmt.Errorf("error building query")
+func (cs *CrudService[T]) GetById(ctx context.Context, id string) (*T, error) {
+	return cs.repositories.Get(ctx, id)
+}
+
+func (cs *CrudService[T]) SaveEntity(ctx context.Context, entity *T) error {
+	return cs.repositories.Save(ctx, entity)
+}
+
+func (cs *CrudService[T]) DeleteById(ctx context.Context, id string) error {
+	return cs.repositories.Delete(ctx, id)
+}
+
+type CategoryService interface {
+	Service[models.Category]
+}
+
+type CategoryDatabaseService struct {
+	*CrudService[models.Category]
+}
+
+func NewCategoryDatabaseService(db *gorm.DB) CategoryService {
+	return &CategoryDatabaseService{
+		CrudService: NewCrudService(repositories.NewGormRepository[models.Category](db)),
 	}
-
-	err := db.Find(&entities).Error
-	return entities, err
 }
 
-func (dbs *DatabaseService[T]) Create(ctx context.Context, entity *T) error {
-	return dbs.db.Create(entity).Error
+type ProductService interface {
+	Service[models.Product]
 }
 
-func (dbs *DatabaseService[T]) Update(ctx context.Context, entity *T) error {
-	return dbs.db.Save(entity).Error
+type ProductDatabaseService struct {
+	*CrudService[models.Product]
 }
 
-func (dbs *DatabaseService[T]) Delete(ctx context.Context, id string) error {
-	return dbs.db.Delete(new(T), "id = ?", id).Error
-}
-
-func applyParams(db *gorm.DB, params ...database.Param) *gorm.DB {
-	for _, param := range params {
-		db = param(db)
+func NewProductDatabaseService(db *gorm.DB) ProductService {
+	return &ProductDatabaseService{
+		CrudService: NewCrudService(repositories.NewGormRepository[models.Product](db)),
 	}
-	return db
+}
+
+type UserService interface {
+	Service[models.User]
+}
+
+type UserDatabaseService struct {
+	*CrudService[models.User]
+}
+
+func NewUserDatabaseService(db *gorm.DB) UserService {
+	return &UserDatabaseService{
+		CrudService: NewCrudService(repositories.NewGormRepository[models.User](db)),
+	}
+}
+
+type AuthService interface {
+	Register()
+	Login()
 }
