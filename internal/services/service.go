@@ -33,11 +33,11 @@ func (dbs *DatabaseService[T]) GetWithFilters(
 	params ...database.Param,
 ) (*T, error) {
 	entity := new(T)
-	db := applyParams(dbs.db)
+	db := applyParams(dbs.db, params...)
 	if db == nil {
 		return nil, fmt.Errorf("error building query")
 	}
-	err := dbs.db.Preload(clause.Associations).First(entity).Error
+	err := db.Preload(clause.Associations).First(entity).Error
 	return entity, err
 }
 

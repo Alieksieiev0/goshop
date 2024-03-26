@@ -7,6 +7,7 @@ import (
 	"github.com/Alieksieiev0/goshop/internal/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 func Connect() (*gorm.DB, error) {
@@ -18,7 +19,10 @@ func Connect() (*gorm.DB, error) {
 		os.Getenv("DB_NAME"),
 		os.Getenv("DB_PORT"),
 	)
-	return gorm.Open(postgres.Open(dsn), &gorm.Config{})
+
+	return gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
 }
 
 func Setup(db *gorm.DB) error {

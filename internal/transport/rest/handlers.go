@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"reflect"
 	"strconv"
+	"time"
 
 	"github.com/Alieksieiev0/goshop/internal/database"
 	"github.com/Alieksieiev0/goshop/internal/models"
@@ -11,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 func registerHandler(service services.UserService) fiber.Handler {
@@ -20,7 +22,7 @@ func registerHandler(service services.UserService) fiber.Handler {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		if !user.IsValid() {
+		if user.Username == "" && user.Email == "" && user.Password == "" {
 			return c.Status(fiber.StatusBadRequest).
 				JSON(fiber.Map{"error": "Insufficient user data"})
 		}
@@ -38,6 +40,7 @@ func registerHandler(service services.UserService) fiber.Handler {
 			return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"error": err.Error()})
 		}
 
+		user.Password = ""
 		return c.Status(http.StatusOK).JSON(fiber.Map{"data": user})
 	}
 }
@@ -49,24 +52,21 @@ func loginHandler(service services.UserService) fiber.Handler {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		if !user.IsValid() {
+		if user.Email == "" && user.Password == "" {
 			return c.Status(fiber.StatusBadRequest).
 				JSON(fiber.Map{"error": "Insufficient user data"})
 		}
 
 		dbUser, err := service.GetWithFilters(
 			c.Context(),
-			database.Filter("username", user.Username, true),
 			database.Filter("email", user.Email, true),
 		)
 
-		if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return c.Status(fiber.StatusUnprocessableEntity).
+				JSON(fiber.Map{"error": "User with such email does not exist"})
+		} else if err != nil {
 			return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"error": err.Error()})
-		}
-
-		if dbUser == nil {
-			return c.Status(fiber.StatusBadRequest).
-				JSON(fiber.Map{"error": "Provided user does not exist"})
 		}
 
 		err = bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(user.Password))
@@ -75,7 +75,7 @@ func loginHandler(service services.UserService) fiber.Handler {
 				JSON(fiber.Map{"error": "Provided password is incorrect"})
 		}
 
-		token, err := generateJWT(dbUser)
+		token, err := generateJWT(dbUser, (time.Hour * 6))
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 		}
@@ -137,7 +137,7 @@ func createHandler[T any](service services.Service[T]) fiber.Handler {
 			return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"error": err.Error()})
 		}
 
-		return c.Status(fiber.StatusOK).JSON(entity)
+		return c.Status(fiber.StatusCreated).JSON(entity)
 	}
 }
 
@@ -175,10 +175,16 @@ func hashPassword(password string) (string, error) {
 	return string(hashedPassword), nil
 }
 
-func generateJWT(user *models.User) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":   user.ID,
-		"role": user.Role,
+func generateJWT(user *models.User, expiresAfter time.Duration) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, UserClaims{
+		Id:        user.ID,
+		Username:  user.Username,
+		Email:     user.Email,
+		Role:      user.Role.String(),
+		Algorithm: jwt.SigningMethodHS256.Name,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expiresAfter)),
+		},
 	})
 
 	signedToken, err := token.SignedString([]byte("secret-key"))
@@ -187,4 +193,13 @@ func generateJWT(user *models.User) (string, error) {
 	}
 
 	return signedToken, nil
+}
+
+type UserClaims struct {
+	Id        string `json:"id"`
+	Username  string `json:"username"`
+	Email     string `json:"email"`
+	Role      string `json:"role"`
+	Algorithm string `json:"alg"`
+	jwt.RegisteredClaims
 }
