@@ -2,6 +2,7 @@ package rest
 
 import (
 	"github.com/Alieksieiev0/goshop/internal/models"
+	"github.com/Alieksieiev0/goshop/internal/providers"
 	"github.com/Alieksieiev0/goshop/internal/services"
 	"github.com/gofiber/fiber/v2"
 )
@@ -75,4 +76,28 @@ func (crs *CategoryRestController) Activate(app *fiber.App) {
 		delete[models.Category](crs.service),
 	)
 	app.Post(crs.base.path, AuthMiddleware, AdminMiddleware, save[models.Category](crs.service))
+}
+
+type AuthController interface {
+	Controller
+}
+
+type AuthRestController struct {
+	service       services.AuthService
+	tokenProvider providers.TokenProvider
+}
+
+func NewAuthRestController(
+	service services.AuthService,
+	tokenProvider providers.TokenProvider,
+) AuthController {
+	return &AuthRestController{
+		service:       service,
+		tokenProvider: tokenProvider,
+	}
+}
+
+func (ars *AuthRestController) Activate(app *fiber.App) {
+	app.Post("/register", register(ars.service))
+	app.Post("/login", login(ars.service, ars.tokenProvider))
 }

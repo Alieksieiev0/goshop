@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"github.com/Alieksieiev0/goshop/internal/providers"
 	"github.com/Alieksieiev0/goshop/internal/services"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -26,12 +27,13 @@ func (s *Server) Start(addr string) error {
 	}))
 	s.app.Use(cors.New())
 
-	/*
-		auth := s.app.Group("/auth")
-		auth.Post("/register", registerHandler(s.us))
-		auth.Post("/login", loginHandler(s.us))
-	*/
-
+	NewAuthRestController(
+		services.NewDefaultAuthService(
+			services.NewUserDatabaseService(s.db),
+			services.NewRoleDatabaseService(s.db),
+		),
+		providers.NewJWTProvider(),
+	).Activate(s.app)
 	NewProductRestController(services.NewProductDatabaseService(s.db)).Activate(s.app)
 	NewCategoryRestController(services.NewCategoryDatabaseService(s.db)).Activate(s.app)
 

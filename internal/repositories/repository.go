@@ -18,7 +18,7 @@ type Repository[T any] interface {
 type DatabaseRepository[T any] interface {
 	Repository[T]
 	GetWithFilters(ctx context.Context, params ...database.Param) (*T, error)
-	GetAll(ctx context.Context, params ...database.Param) ([]T, error)
+	GetAllWithFilters(ctx context.Context, params ...database.Param) ([]T, error)
 }
 
 type GormRepository[T any] struct {
@@ -50,7 +50,10 @@ func (gr *GormRepository[T]) GetWithFilters(
 	return entity, err
 }
 
-func (gr *GormRepository[T]) GetAll(ctx context.Context, params ...database.Param) ([]T, error) {
+func (gr *GormRepository[T]) GetAllWithFilters(
+	ctx context.Context,
+	params ...database.Param,
+) ([]T, error) {
 	entities := []T{}
 	err := gr.db.Find(&entities).Error
 	return entities, err
